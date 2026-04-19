@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import ApprovalCard, { PendingApproval } from "@/components/ApprovalCard";
+import MailIcon from "@/components/Icons/MailIcon";
+import ShieldIcon from "@/components/Icons/ShieldIcon";
+import SendIcon from "@/components/Icons/SendIcon";
 
 type Message = {
   role: "user" | "assistant";
@@ -14,6 +17,20 @@ export default function ChatPage() {
   const [history, setHistory] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [pendingApproval, setPendingApproval] = useState<PendingApproval | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [history, loading, pendingApproval]);
+
+  const handleQuickAction = (message: string) => {
+    setMessage(message);
+    setTimeout(() => sendMessage(), 100);
+  };
 
   const handleApproval = async (decision: "approve" | "reject" | "edit", editedArgs?: Record<string, string | number | boolean>) => {
     setLoading(true);
@@ -32,22 +49,22 @@ export default function ChatPage() {
       });
 
       const data = await res.json();
-      
+
       if (data.status === "completed") {
         setHistory([
           ...history,
           { role: "assistant", content: data.response },
         ]);
       }
-      
+
       setPendingApproval(null);
     } catch (err) {
       console.error(err);
       setHistory(prev => [
         ...prev,
-        { 
-          role: "assistant", 
-          content: "Sorry, there was an error processing your approval. Please try again." 
+        {
+          role: "assistant",
+          content: "Sorry, there was an error processing your approval. Please try again."
         }
       ]);
       setPendingApproval(null);
@@ -93,9 +110,9 @@ export default function ChatPage() {
       console.error(err);
       setHistory(prev => [
         ...prev,
-        { 
-          role: "assistant", 
-          content: "Sorry, there was an error processing your request. Please try again." 
+        {
+          role: "assistant",
+          content: "Sorry, there was an error processing your request. Please try again."
         }
       ]);
     }
@@ -104,19 +121,28 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50 text-slate-900 font-sans antialiased">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 to-indigo-100 text-slate-900 font-sans antialiased">
 
-      {/* Header: Fixed at top, centered content on large screens */}
-      <header className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 bg-white/80 backdrop-blur-md border-b shadow-sm">
+      {/* Header: Email-themed header */}
+      <header className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-white shadow-lg border-b border-blue-100">
         <div className="max-w-5xl mx-auto w-full flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-blue-200 shadow-lg">
-              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+              <MailIcon size={20} className="text-white" />
             </div>
-            <span className="font-bold tracking-tight text-slate-800">AI Assistant</span>
+            <div>
+              <h1 className="font-bold text-lg text-slate-800">Email AI Assistant</h1>
+              <p className="text-xs text-slate-500">Manage your emails with AI</p>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] uppercase tracking-widest font-semibold text-slate-400 bg-slate-100 px-2 py-1 rounded">v2.0</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-xs text-slate-500">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span>Online</span>
+            </div>
+            <button className="text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors">
+              Clear Chat
+            </button>
           </div>
         </div>
       </header>
@@ -125,8 +151,31 @@ export default function ChatPage() {
       <div className="flex-1 overflow-y-auto px-4 py-6 md:px-0 scroll-smooth">
         <div className="max-w-3xl mx-auto space-y-6">
           {history.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-64 text-slate-400">
-              <p className="text-sm font-medium">No messages yet. Ask me anything!</p>
+            <div className="flex flex-col items-center justify-center h-64 text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                <MailIcon size={32} className="text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-700 mb-2">Welcome to Email AI Assistant</h3>
+              <p className="text-sm text-slate-500 mb-4">I can help you send emails and manage your inbox</p>
+              <div className="bg-white rounded-lg border border-blue-200 p-4 max-w-md">
+                <p className="text-xs text-slate-600 mb-3 font-medium">Quick Actions:</p>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => handleQuickAction("Send an email")}
+                    className="w-full text-left px-3 py-2 text-xs bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors text-blue-700"
+                  >
+                    <div className="font-medium">Send Email</div>
+                    <div className="text-blue-600 opacity-75">Quick email sending</div>
+                  </button>
+                  <button
+                    onClick={() => handleQuickAction("Delete emails")}
+                    className="w-full text-left px-3 py-2 text-xs bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors text-red-700"
+                  >
+                    <div className="font-medium">Clean Spam Emails</div>
+                    <div className="text-red-600 opacity-75">Remove spam from your inbox</div>
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
@@ -137,31 +186,47 @@ export default function ChatPage() {
                 }`}
             >
               <div
-                className={`relative px-4 py-3 rounded-2xl max-w-[85%] md:max-w-[75%] shadow-sm text-sm md:text-base ${msg.role === "user"
-                    ? "bg-blue-600 text-white rounded-tr-none"
-                    : "bg-white border border-slate-200 text-slate-800 rounded-tl-none"
+                className={`relative shadow-md text-sm md:text-base ${msg.role === "user"
+                  ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl rounded-tr-none max-w-[85%] md:max-w-[75%]"
+                  : "bg-white border border-blue-200 text-slate-800 rounded-2xl rounded-tl-none max-w-[90%] md:max-w-[80%]"
                   }`}
               >
-                <div className="whitespace-pre-wrap leading-relaxed">
+                {msg.role === "assistant" && (
+                  <div className="flex items-center gap-2 px-4 py-2 border-b border-blue-100 bg-blue-50 rounded-t-xl">
+                    <div className="w-6 h-6 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                      <ShieldIcon size={12} className="text-white" />
+                    </div>
+                    <span className="text-xs font-medium text-blue-700">Email Assistant</span>
+                  </div>
+                )}
+                <div className={`whitespace-pre-wrap leading-relaxed ${msg.role === "user" ? "px-4 pb-2 pt-3" : "px-4 pb-2 pt-3"}`}>
                   {msg.content}
                 </div>
 
-                {/* Timestamp or Role Label (Optional) */}
-                <div className={`text-[10px] mt-1 opacity-50 ${msg.role === "user" ? "text-right" : "text-left"
+                {/* Email-style footer */}
+                <div className={`px-4 pb-3 text-[10px] opacity-70 ${msg.role === "user" ? "text-blue-100 text-right" : "text-slate-400 text-left"
                   }`}>
-                  {msg.role === "user" ? "You" : "Assistant"}
+                  {msg.role === "user" ? "You" : "AI Assistant"}
                 </div>
               </div>
             </div>
           ))}
 
           {loading && (
-            <div className="flex justify-start animate-pulse">
-              <div className="bg-white border border-slate-200 px-4 py-4 rounded-2xl rounded-tl-none">
-                <div className="flex gap-1">
-                  <div className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce"></div>
-                  <div className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:0.2s]"></div>
-                  <div className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+            <div className="flex justify-start">
+              <div className="bg-white border border-blue-200 rounded-2xl rounded-tl-none shadow-md max-w-[90%] md:max-w-[80%]">
+                <div className="flex items-center gap-2 px-4 py-2 border-b border-blue-100 bg-blue-50 rounded-t-xl">
+                  <div className="w-6 h-6 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                    <ShieldIcon size={12} className="text-white" />
+                  </div>
+                  <span className="text-xs font-medium text-blue-700">Email Assistant</span>
+                </div>
+                <div className="px-4 py-4">
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -174,39 +239,51 @@ export default function ChatPage() {
               loading={loading}
             />
           )}
+          <div ref={messagesEndRef} />
         </div>
       </div>
 
-      {/* Input Area: Centered with a floating appearance on desktop */}
-      <div className="p-4 md:pb-8 bg-gradient-to-t from-slate-50 to-transparent">
-        <div className="max-w-3xl mx-auto relative group">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl blur opacity-20 group-focus-within:opacity-40 transition duration-300"></div>
+      {/* Input Area: Email compose style */}
+      <div className="p-4 md:pb-8 bg-white border-t border-blue-100">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-white border border-blue-200 rounded-xl shadow-lg overflow-hidden">
+            <div className="flex items-center gap-3 px-4 py-3 bg-blue-50 border-b border-blue-200">
+              <ShieldIcon size={16} className="text-blue-600" />
+              <span className="text-sm font-medium text-blue-700">Compose Message</span>
+            </div>
 
-          <div className="relative flex items-center gap-2 bg-white border border-slate-200 p-2 rounded-2xl shadow-xl">
-            <input
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              className="flex-1 bg-transparent border-none px-3 py-2 text-sm md:text-base outline-none focus:ring-0 placeholder:text-slate-400 disabled:opacity-50"
-              placeholder={pendingApproval ? "Waiting for approval..." : "Type your message..."}
-              disabled={!!pendingApproval || loading}
-            />
+            <div className="p-4">
+              <input
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                  }
+                }}
+                className="w-full bg-transparent border-none outline-none resize-none text-sm placeholder:text-slate-400 disabled:opacity-50"
+                placeholder={pendingApproval ? "Waiting for approval..." : "Ask me to send emails, delete messages, or manage your inbox..."}
+                disabled={!!pendingApproval || loading}
+              />
+            </div>
 
-            <button
-              onClick={sendMessage}
-              disabled={!message.trim() || loading || !!pendingApproval}
-              className="bg-blue-600 hover:bg-blue-700 active:scale-95 disabled:grayscale disabled:opacity-50 text-white p-2.5 rounded-xl transition-all shadow-md shadow-blue-200"
-            >
-              {/* Simple Send SVG */}
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13"></line>
-                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-              </svg>
-            </button>
+            <div className="flex flex-col gap-3 px-4 py-3 bg-slate-50 border-t border-blue-100">
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-slate-500">
+                  Press Enter to send &bull; Shift + Enter for new line
+                </p>
+                <button
+                  onClick={sendMessage}
+                  disabled={!message.trim() || loading || !!pendingApproval}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-slate-400 disabled:to-slate-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  <SendIcon size={16} />
+                  Send
+                </button>
+              </div>
+            </div>
           </div>
-          <p className="text-[10px] text-slate-400 text-center mt-3 font-medium">
-            Press Enter to send &bull; Shift + Enter for new line
-          </p>
         </div>
       </div>
     </div>
