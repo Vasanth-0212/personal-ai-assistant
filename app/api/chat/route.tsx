@@ -29,7 +29,10 @@ export async function POST(request: NextRequest) {
               decision === "edit"
                 ? {
                   type: "edit",
-                  editedAction: editedArgs,
+                  editedAction: {
+                    name: editedArgs.name,
+                    args: editedArgs.args,
+                  },
                 }
                 : {
                   type: decision,

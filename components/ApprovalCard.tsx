@@ -21,7 +21,7 @@ type ApprovalCardProps = {
   pendingApproval: PendingApproval;
   onApproval: (
     decision: "approve" | "reject" | "edit",
-    editedArgs?: Record<string, string | number | boolean>
+    editedArgs?: { name: string; args: Record<string, string | number | boolean> }
   ) => void;
   loading: boolean;
 };
@@ -127,7 +127,7 @@ export default function ApprovalCard({
           ) : (
             <>
               <button
-                onClick={() => onApproval("edit", editedArgs)}
+                onClick={() => onApproval("edit", { name: action.name, args: editedArgs })}
                 disabled={loading}
                 className="px-3 py-1.5 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 disabled:opacity-50"
               >

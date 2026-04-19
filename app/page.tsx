@@ -32,7 +32,7 @@ export default function ChatPage() {
     setTimeout(() => sendMessage(), 100);
   };
 
-  const handleApproval = async (decision: "approve" | "reject" | "edit", editedArgs?: Record<string, string | number | boolean>) => {
+  const handleApproval = async (decision: "approve" | "reject" | "edit", editedArgs?: { name: string; args: Record<string, string | number | boolean> }) => {
     setLoading(true);
     console.log("handleApproval", decision, editedArgs);
     try {

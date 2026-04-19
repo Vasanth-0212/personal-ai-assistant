@@ -14,10 +14,10 @@ import { RemoveMessage } from "@langchain/core/messages"
 
 const trimMessages = createMiddleware({
   name: "TrimMessages",
-  beforeModel: (state) => {
+  afterModel: (state) => {
     const messages = state.messages;
 
-    if (messages.length <= 3) {
+    if (messages.length <= 15) {
       return; // No changes needed
     }
 
